@@ -4,11 +4,15 @@ import './Select.css'
 
 const Select = (props) => {
 
-	const options = props.options.map((text, id) => { return <option key={id}>{text}</option>;});
+	const [options,setOptions] = useState(props.defaultValue);
+
+	const handleChange = (event) => {
+		setOptions(event.target.options);
+	}
+	
 	return(
     <div>
-		<select aria-label={props.name} className="Select" onClick={props.onClick} defaultValue={props.defaultValue} >
-		<option id='' hidden disabled>{props.defaultValue}</option>
+		<select aria-label={props.name} className="Select" onChange={handleChange} onClick={props.onClick} defaultValue={props.defaultValue} >
 		{options}
 		</select>
 	</div>
