@@ -1,0 +1,7 @@
+.Select { 
+    width: 300px; 
+    height: 25px; 
+    border-radius: 6px; 
+    text-align: center;
+    margin: 10px;
+  }
