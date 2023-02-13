@@ -6,7 +6,7 @@ import "./TextBox.css"
 const TextBox = (props) => { 
   return ( 
     <div> 
-      <input className="TextBox"  defaultValue={props.defaultValue}/> 
+      <input type="text" aria-label={props.name} className="TextBox"  defaultValue={props.defaultValue}/> 
     </div> 
   ) 
 } 

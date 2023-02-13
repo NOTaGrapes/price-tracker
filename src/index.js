@@ -10,12 +10,11 @@ import LogoPulse from './UI/LogoPulse/LogoPulse';
 import TextBox from "./UI/TextBox/TextBox";
 import Select from "./UI/Select/Select";
 
-let optionsSymbols = [1,2,3,4];
-let optionsMarkets = [11,22,33,44];
-let symbol = 0;
-let market = 0;
+const optionsMarketsSymbols = [];
+const sortByMarket = (a, b) => a.market > b.market ? 1 : -1;
 let prePrice = 0;
 let curPrice = 0;
+let symbol;
 
 const app_id = 1089;
 const connection = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`);
@@ -42,10 +41,16 @@ const activeSymbolsResponse = async (res) => {
   }
 
   if (data.msg_type === "active_symbols") {
-    console.log(data.active_symbols);
-    
-  }
+    console.log("Data recieved :", data.active_symbols);
+    for (let i = 0; i < data.active_symbols.length;i++)
+    {
+      optionsMarketsSymbols.push({market: data.active_symbols[i].market, symbol: data.active_symbols[i].symbol});
+    }
+    optionsMarketsSymbols.sort(sortByMarket);
+    console.log("available markets founded :", optionsMarketsSymbols);
 
+  }
+  
   connection.removeEventListener("message", activeSymbolsResponse, false);
 };
 
@@ -54,23 +59,14 @@ const getActiveSymbols = async () => {
   await api.activeSymbols(active_symbols_request);
 };
 
-const onClickMarkets=()=>{
-  //getActiveSymbols();
-}
-
-const onClickSymbols=()=>{
-
-}
 
 //dat crap is my idea to make coding more comfortable for me. yea, i kinda kinky person 
 const Main = (props) => { 
 
     return (
-      <div className="Main">
+      <div className="Main" onLoad={getActiveSymbols}>
         <LogoPulse />
-        <Select defaultValue="Select market" onClick={getActiveSymbols} options={optionsSymbols} />
-        <Select defaultValue ="Select symbol" onClick={getActiveSymbols} options={optionsMarkets} />
-        <TextBox defaultValue ={curPrice}/>
+        <TextBox name="currentPrice" defaultValue ={curPrice}/>
       </div>
     );
 }
