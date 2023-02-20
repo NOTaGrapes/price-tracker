@@ -72,7 +72,9 @@ const Main = () => {
     {
       subscribeTicks();
     }
-    
+    else{
+
+    }
   },[symbol])
   
   const onMarketChange = (e) => {
