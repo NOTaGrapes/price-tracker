@@ -19,7 +19,6 @@ const TextBox = (props) => {
     }
     if(props.prevValue===props.value)
     {
-      console.log(" TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA TADAAAA")
       setClassName("TextBoxGray");
     }
   }
@@ -41,7 +40,6 @@ const TextBox = (props) => {
       className={className}
       value={props.value}
       onChange={(e)=>{console.log("qO_op --- 'What?'")}}>
-      
       </input>
     </div> 
   ) 

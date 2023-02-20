@@ -31,6 +31,7 @@ const Main = () => {
         MarketOptions.push(copy);
       }
     }
+    console.log("provide market options inited")
     setMarkets(MarketOptions);
     setMarket(MarketOptions[0]);
   }
@@ -47,6 +48,7 @@ const Main = () => {
         }
       }
     }
+    console.log("provide symbol options inited")
     setSymbols(SymbolOptions);
     setSymbol(SymbolOptions[0]);
   }
@@ -58,55 +60,49 @@ const Main = () => {
       provideMarketOptions();
       provideSymbolOptions();
     }
-  }, [mainList])
+  }, [mainList]);
 
   useEffect(()=>{
     if(market!==""){
       console.log("<market> change detected by useEffect : ",market);
-      setPrice(0);
       provideSymbolOptions();
     }
-  },[market])
+  }, [market]);
 
   useEffect(()=>{
     if(symbol!==""){
       console.log("<symbol> change detected by useEffect : ",symbol)
  
-      if(symbol && symbol!=="Select Symbol" )
+      if(symbol!=="Select Symbol" )
       {
+        console.log("there we should subscribe")
         subscribeTicks();
       }
       if(symbol==="Select Symbol")
       {
-        //unsubscribeTicks();
+        console.log("there we should UNsubscribe")
+        unsubscribeTicks();
       }
     }
-  },[symbol])
+  }, [symbol]);
   
   const onMarketChange = (e) => {
-    unsubscribeTicks();
     setMarket(e);
     console.log("<market> changed to : ", e);
   };
   const onSymbolChange = (e) => {
-    unsubscribeTicks();
     setSymbol(e);
     console.log("<symbol> changed to : ", e);
   };
 
-  //DERIV PART of CODE//===========================================================================================================
+  //DERIV PART of CODE//==========//Base variables//=================================================================================================
   const app_id = 1089;
   const connection = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`);
   const api        = new DerivAPIBasic({ connection });
-  const tickStream = () => api.subscribe(symbol_subscribe_request);
-
+  //DERIV PART of CODE//==========//Active symbols request//=================================================================================================
   const active_symbols_request = {
     active_symbols: "brief",
     product_type: "basic"
-  };
-  const symbol_subscribe_request = {
-    "ticks": symbol,
-    "subscribe": 1
   };
   const activeSymbolsResponse = async (res) => {
     const data = JSON.parse(res.data);
@@ -136,28 +132,35 @@ const Main = () => {
     connection.addEventListener("message", activeSymbolsResponse);
     await api.activeSymbols(active_symbols_request);
   };
+  //DERIV PART of CODE//==========//ticks request//=================================================================================================
+ 
+  const ticks_request = {
+    ticks: symbol,
+    subscribe: 1
+  };
+  
+  const tickSubscriber = () => api.subscribe(ticks_request);
 
-  const tickResponse = async (res) => {
+  const ticksResponse = async (res) => {
     const data = JSON.parse(res.data);
     if (data.error !== undefined) {
       console.log("Error : ", data.error.message);
-      connection.removeEventListener("message", tickResponse, false);
+      connection.removeEventListener("message", ticksResponse, false);
       await api.disconnect();
     }
     if (data.msg_type === "tick") {
       console.log(data.tick);
-      setPrice(data.tick.quote);
-      console.log(price)
     }
   };
+  
   const subscribeTicks = async () => {
-    await tickStream();
-    connection.addEventListener("message", tickResponse);
+    connection.addEventListener("message", ticksResponse);
+    await tickSubscriber();
   };
-  const unsubscribeTicks = () => {
-    connection.removeEventListener("message", tickResponse, false);
-    tickStream().unsubscribe();
-    console.log("unsubscribed from ticks");
+  
+  const unsubscribeTicks = async () => {
+    connection.removeEventListener("message", ticksResponse, false);
+    await tickSubscriber().unsubscribe();
   };
   // ==============================================================================================================================
   return (
