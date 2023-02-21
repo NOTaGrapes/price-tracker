@@ -51,17 +51,15 @@ const Main = () => {
     setSymbol(SymbolOptions[0]);
   }
   const provideClassName = () => {
-    
-    if(prevPrice<price){
+    const PrevPrice = prevPrice.current;
+    const Price = price;
+    if(PrevPrice<Price){
       setClassName("TextBoxGreen");
     }
-    if(prevPrice>price){
+    if(PrevPrice>Price){
       setClassName("TextBoxRed");
     }
-    if(prevPrice===price)
-    {
-      setClassName("TextBoxGray");
-    }
+    console.log("provide className inited")
   }
   const provedePrices = () =>{
     let newTicket = ticket
@@ -111,8 +109,10 @@ const Main = () => {
 
   useEffect(()=>{
     if(price!==0){
+      provideClassName();
       console.log("<price> change detected by useEffect : ",price);
       console.log("<prevPrice> change detected by useEffect : ",prevPrice.current);
+      console.log("<className> change detected by useEffect : ",className);
     }
   },[price])
 
@@ -180,6 +180,7 @@ const Main = () => {
     }
     if (data.msg_type === "tick") {
       console.log(data.tick);
+      setClassName("TextBoxGray");
       setTicket(data.tick);
     }
   };
@@ -208,7 +209,11 @@ const Main = () => {
       onChange={onSymbolChange}
       options={symbols}
       />
-      
+      <TextBox
+      name="TextBoxPrice"
+      value={price}
+      className={className}
+      />
     </div>
   );
 }
