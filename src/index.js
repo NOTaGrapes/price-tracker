@@ -111,8 +111,6 @@ const Main = () => {
     if(price!==0){
       provideClassName();
       console.log("<price> change detected by useEffect : ",price);
-      console.log("<prevPrice> change detected by useEffect : ",prevPrice.current);
-      console.log("<className> change detected by useEffect : ",className);
     }
   },[price])
 
