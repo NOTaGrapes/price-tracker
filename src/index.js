@@ -212,6 +212,7 @@ const Main = () => {
       value={price}
       className={className}
       />
+      <button onClick={()=>{unsubscribeTicks()}}>unsubscribe</button>
     </div>
   );
 }
