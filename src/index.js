@@ -1,5 +1,5 @@
 import DerivAPIBasic from '@deriv/deriv-api/dist/DerivAPIBasic.js';
-import React, {useState,useEffect} from 'react';
+import React, {useState,useEffect, useRef} from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
@@ -9,18 +9,16 @@ import TextBox from "./UI/TextBox/TextBox";
 import Select from "./UI/Select/Select";
 // ================================================================================================================================
 const Main = () => {
-  let listSize = 0;
-  let mainListPrefab = {
-    market:"select market",
-    symbol:"select symbol"
-  };
   const sortByMarket = (a, b) => a.market > b.market ? 1 : -1;
   const [mainList,setMainList] = useState([]);
   const [markets,setMarkets] = useState([]);
   const [market,setMarket] = useState("");
   const [symbols,setSymbols] = useState([]);
   const [symbol,setSymbol] = useState("");
+  const [ticket,setTicket] = useState();
   const [price,setPrice] = useState(0);
+  const [className,setClassName] = useState("TextBoxGray");
+  const prevPrice = useRef(0);
   //func that return array for market's select
   const provideMarketOptions = () => {
     let AllOptions = mainList;
@@ -52,7 +50,24 @@ const Main = () => {
     setSymbols(SymbolOptions);
     setSymbol(SymbolOptions[0]);
   }
-
+  const provideClassName = () => {
+    
+    if(prevPrice<price){
+      setClassName("TextBoxGreen");
+    }
+    if(prevPrice>price){
+      setClassName("TextBoxRed");
+    }
+    if(prevPrice===price)
+    {
+      setClassName("TextBoxGray");
+    }
+  }
+  const provedePrices = () =>{
+    let newTicket = ticket
+    prevPrice.current = price;
+    setPrice(newTicket.quote);
+  }
   useEffect(()=>{
     if(mainList.length!==0)
     {
@@ -86,6 +101,21 @@ const Main = () => {
     }
   }, [symbol]);
   
+  useEffect(()=>{
+    if(ticket!==undefined)
+    {
+      console.log("<ticket> change detected by useEffect : ",ticket);
+      provedePrices();
+    }
+  }, [ticket])
+
+  useEffect(()=>{
+    if(price!==0){
+      console.log("<price> change detected by useEffect : ",price);
+      console.log("<prevPrice> change detected by useEffect : ",prevPrice.current);
+    }
+  },[price])
+
   const onMarketChange = (e) => {
     setMarket(e);
     console.log("<market> changed to : ", e);
@@ -150,6 +180,7 @@ const Main = () => {
     }
     if (data.msg_type === "tick") {
       console.log(data.tick);
+      setTicket(data.tick);
     }
   };
   
@@ -177,9 +208,7 @@ const Main = () => {
       onChange={onSymbolChange}
       options={symbols}
       />
-      <TextBox 
-      name="CurrentPrice" 
-      value ={price} />
+      
     </div>
   );
 }
