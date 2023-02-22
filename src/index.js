@@ -1,5 +1,5 @@
-import DerivAPIBasic from '@deriv/deriv-api/dist/DerivAPIBasic.js';
-import React, {useState,useEffect, useRef} from 'react';
+import DerivAPIBasic from "https://cdn.skypack.dev/@deriv/deriv-api/dist/DerivAPIBasic";
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
@@ -29,7 +29,7 @@ const Main = () => {
         MarketOptions.push(copy);
       }
     }
-    console.log("provide market options inited")
+    // console.log("provide market options inited")
     setMarkets(MarketOptions);
     setMarket(MarketOptions[0]);
   }
@@ -46,7 +46,7 @@ const Main = () => {
         }
       }
     }
-    console.log("provide symbol options inited")
+    // console.log("provide symbol options inited")
     setSymbols(SymbolOptions);
     setSymbol(SymbolOptions[0]);
   }
@@ -59,7 +59,7 @@ const Main = () => {
     if(PrevPrice>Price){
       setClassName("TextBoxRed");
     }
-    console.log("provide className inited")
+    // console.log("provide className inited")
   }
   const provedePrices = () =>{
     let newTicket = ticket
@@ -69,7 +69,7 @@ const Main = () => {
   useEffect(()=>{
     if(mainList.length!==0)
     {
-      console.log("<mainList> change detected by useEffect : ",mainList);
+      // console.log("<mainList> change detected by useEffect : ",mainList);
       provideMarketOptions();
       provideSymbolOptions();
     }
@@ -77,32 +77,15 @@ const Main = () => {
 
   useEffect(()=>{
     if(market!==""){
-      console.log("<market> change detected by useEffect : ",market);
+      // console.log("<market> change detected by useEffect : ",market);
       provideSymbolOptions();
     }
   }, [market]);
 
   useEffect(()=>{
-    if(symbol!==""){
-      console.log("<symbol> change detected by useEffect : ",symbol)
- 
-      if(symbol!=="Select Symbol" )
-      {
-        console.log("there we should subscribe")
-        subscribeTicks();
-      }
-      if(symbol==="Select Symbol")
-      {
-        console.log("there we should UNsubscribe")
-        unsubscribeTicks();
-      }
-    }
-  }, [symbol]);
-  
-  useEffect(()=>{
     if(ticket!==undefined)
     {
-      console.log("<ticket> change detected by useEffect : ",ticket);
+      // console.log("<ticket> change detected by useEffect : ",ticket);
       provedePrices();
     }
   }, [ticket])
@@ -110,14 +93,15 @@ const Main = () => {
   useEffect(()=>{
     if(price!==0){
       provideClassName();
-      console.log("<price> change detected by useEffect : ",price);
+      // console.log("<price> change detected by useEffect : ",price);
     }
   },[price])
 
   const onMarketChange = (e) => {
     setMarket(e);
-    console.log("<market> changed to : ", e);
+    // console.log("<market> changed to : ", e);
   };
+
   const onSymbolChange = (e) => {
     setSymbol(e);
     console.log("<symbol> changed to : ", e);
@@ -140,7 +124,7 @@ const Main = () => {
       await api.disconnect();
     }
     if (data.msg_type === "active_symbols") {
-      console.log("<data> was recieved :", data.active_symbols);
+      // console.log("<data> was recieved :", data.active_symbols);
       let newMainList =[];
       //setMainList(mainList.pop());
       for (let i = 0; i < data.active_symbols.length;i++)
@@ -150,59 +134,29 @@ const Main = () => {
           symbol: data.active_symbols[i].symbol,
         })
 
-      } 
+      }
       setMainList(newMainList);
       mainList.sort(sortByMarket);
     }
     connection.removeEventListener("message", activeSymbolsResponse, false);
-  }; 
+  };
   const getActiveSymbols = async () => {
     connection.addEventListener("message", activeSymbolsResponse);
     await api.activeSymbols(active_symbols_request);
   };
   //DERIV PART of CODE//==========//ticks request//=================================================================================================
- 
-  const ticks_request = {
-    ticks: symbol,
-    subscribe: 1
-  };
-  
-  const tickSubscriber = () => api.subscribe(ticks_request);
 
-  const ticksResponse = async (res) => {
-    const data = JSON.parse(res.data);
-    if (data.error !== undefined) {
-      console.log("Error : ", data.error.message);
-      connection.removeEventListener("message", ticksResponse, false);
-      await api.disconnect();
-    }
-    if (data.msg_type === "tick") {
-      console.log(data.tick);
-      setClassName("TextBoxGray");
-      setTicket(data.tick);
-    }
-  };
-  
-  const subscribeTicks = async () => {
-    connection.addEventListener("message", ticksResponse);
-    await tickSubscriber();
-  };
-  
-  const unsubscribeTicks = async () => {
-    connection.removeEventListener("message", ticksResponse, false);
-    await tickSubscriber().unsubscribe();
-  };
   // ==============================================================================================================================
   return (
     <div className="Main" onLoad={getActiveSymbols}>
       <LogoPulse />
-      <Select 
+      <Select
       name="SelectMarket"
       onChange={onMarketChange}
       defaultValue="Select Market"
       options={markets}
       />
-      <Select 
+      <Select
       name="SelectSymbol"
       onChange={onSymbolChange}
       options={symbols}
@@ -211,6 +165,7 @@ const Main = () => {
       name="TextBoxPrice"
       value={price}
       className={className}
+      symbol={symbol}
       />
       <button onClick={()=>{unsubscribeTicks()}}>unsubscribe</button>
     </div>
