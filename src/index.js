@@ -15,10 +15,6 @@ const Main = () => {
   const [market,setMarket] = useState("");
   const [symbols,setSymbols] = useState([]);
   const [symbol,setSymbol] = useState("");
-  const [ticket,setTicket] = useState();
-  const [price,setPrice] = useState(0);
-  const [className,setClassName] = useState("TextBoxGray");
-  const prevPrice = useRef(0);
   //func that return array for market's select
   const provideMarketOptions = () => {
     let AllOptions = mainList;
@@ -50,56 +46,27 @@ const Main = () => {
     setSymbols(SymbolOptions);
     setSymbol(SymbolOptions[0]);
   }
-  const provideClassName = () => {
-    const PrevPrice = prevPrice.current;
-    const Price = price;
-    if(PrevPrice<Price){
-      setClassName("TextBoxGreen");
-    }
-    if(PrevPrice>Price){
-      setClassName("TextBoxRed");
-    }
-    // console.log("provide className inited")
-  }
-  const provedePrices = () =>{
-    let newTicket = ticket
-    prevPrice.current = price;
-    setPrice(newTicket.quote);
-  }
+ 
   useEffect(()=>{
     if(mainList.length!==0)
     {
-      // console.log("<mainList> change detected by useEffect : ",mainList);
+      console.log("<mainList> change detected by useEffect : ",mainList);
       provideMarketOptions();
       provideSymbolOptions();
     }
-  }, [mainList]);
+  }, [mainList])
 
   useEffect(()=>{
-    if(market!==""){
-      // console.log("<market> change detected by useEffect : ",market);
+    if(market!=="" && market!=="Select Market"){
+      console.log("<market> change detected by useEffect : ",market);
       provideSymbolOptions();
     }
   }, [market]);
 
-  useEffect(()=>{
-    if(ticket!==undefined)
-    {
-      // console.log("<ticket> change detected by useEffect : ",ticket);
-      provedePrices();
-    }
-  }, [ticket])
-
-  useEffect(()=>{
-    if(price!==0){
-      provideClassName();
-      // console.log("<price> change detected by useEffect : ",price);
-    }
-  },[price])
-
+  
   const onMarketChange = (e) => {
     setMarket(e);
-    // console.log("<market> changed to : ", e);
+    console.log("<market> changed to : ", e);
   };
 
   const onSymbolChange = (e) => {
@@ -124,9 +91,8 @@ const Main = () => {
       await api.disconnect();
     }
     if (data.msg_type === "active_symbols") {
-      // console.log("<data> was recieved :", data.active_symbols);
+      console.log("<data> was recieved :", data.active_symbols);
       let newMainList =[];
-      //setMainList(mainList.pop());
       for (let i = 0; i < data.active_symbols.length;i++)
       {
         newMainList.push({
@@ -135,8 +101,8 @@ const Main = () => {
         })
 
       }
+      newMainList.sort(sortByMarket);
       setMainList(newMainList);
-      mainList.sort(sortByMarket);
     }
     connection.removeEventListener("message", activeSymbolsResponse, false);
   };
@@ -144,7 +110,6 @@ const Main = () => {
     connection.addEventListener("message", activeSymbolsResponse);
     await api.activeSymbols(active_symbols_request);
   };
-  //DERIV PART of CODE//==========//ticks request//=================================================================================================
 
   // ==============================================================================================================================
   return (
@@ -163,11 +128,8 @@ const Main = () => {
       />
       <TextBox
       name="TextBoxPrice"
-      value={price}
-      className={className}
       symbol={symbol}
       />
-      <button onClick={()=>{unsubscribeTicks()}}>unsubscribe</button>
     </div>
   );
 }

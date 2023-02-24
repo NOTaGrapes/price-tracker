@@ -5,31 +5,34 @@ import "./TextBox.css"
 
 
 const TextBox = (props) => {
-  const app_id = 1089; // Replace with your app_id or leave as 1089 for testing.
-  const connection = new WebSocket(
-      `wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`
-  );
+  const [className,setClassName] = useState("TextBoxGray");
+  const [price,setPrice] = useState(0);
+  const prevPrice = useRef(0);
+
+  const provideClassName = () => {
+    const PrevPrice = prevPrice.current;
+    const Price = price;
+    if(PrevPrice<Price){
+      setClassName("TextBoxGreen");
+    }
+    if(PrevPrice>Price){
+      setClassName("TextBoxRed");
+    }
+    // console.log("provide className inited")
+  }
+
+  //DERIV PART of CODE//==========//Base variables//=================================================================================================
+  const app_id = 1089;
+  const connection = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`);
   const api = new DerivAPIBasic({ connection });
 
+  //DERIV PART of CODE//==========//ticks request//=================================================================================================
   const ticks_request = {
     ticks: props.symbol,
     subscribe: 1
   };
 
   const tickSubscriber = () => api.subscribe(ticks_request);
-
-  const ticksHistoryResponse = async (res) => {
-    const data = JSON.parse(res.data);
-    if (data.error !== undefined) {
-      console.log("Error : ", data.error.message);
-      connection.removeEventListener("message", ticksHistoryResponse, false);
-      await api.disconnect();
-    }
-    if (data.msg_type === "history") {
-      console.log(data.history);
-    }
-    connection.removeEventListener("message", ticksHistoryResponse, false);
-  };
 
   const ticksResponse = async (res) => {
     const data = JSON.parse(res.data);
@@ -42,6 +45,7 @@ const TextBox = (props) => {
     // Allows you to monitor ticks.
     if (data.msg_type === "tick") {
       console.log(data.tick);
+      //setPrice(data.tick.quote);  //Uncomend code there and try launch app again. There is a problem!
     }
   };
 
@@ -55,28 +59,32 @@ const TextBox = (props) => {
     await tickSubscriber().unsubscribe();
   };
 
-  const [className,setClassName] = useState(props.className);
-  const [value,setValue] = useState(props.value);
-
-  useEffect(()=>{
-    setValue(props.value);
-  },[props.value]);
-
-  useEffect(()=>{
-    setClassName(props.className);
-  },[props.className]);
-
   return (
     <div>
       <input
       type="text"
       aria-label={props.name}
       className={className}
-      value={value}
+      symbol={props.symbol}
+      value={price}
       onChange={()=>{console.log("(q * o *)p  'Even I don't give a plug haf it happenEnd!'");}}>
       </input>
-      <button onClick={()=> {subscribeTicks()}}>Calculate</button>
-      <button onClick={()=> {unsubscribeTicks()}}>Stop</button>
+      <button 
+      className="Button" 
+      onClick={()=> {
+        subscribeTicks()
+        console.log("start pushed")
+        }}>
+        Start
+      </button>
+      <button 
+      className="Button"
+      onClick={()=> {
+        unsubscribeTicks()
+        console.log("stop pushed")
+        }}>
+        Stop
+      </button>
     </div>
   )
 }
