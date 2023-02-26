@@ -1,36 +1,35 @@
-.TextBoxGray { 
-  width: 300px; 
-  height: 50px; 
-  box-shadow: 5px 5px 3px gray; 
-  border-radius: 6px; 
-  text-align: center; 
-  margin: 10px;
+.TextBoxGray {
+  width: 300px;
+  height: 50px;
+  box-shadow: 5px 5px 3px gray;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.TextBoxGreen { 
-  width: 300px; 
-  height: 50px; 
-  box-shadow: 5px 5px 3px green; 
-  border-radius: 6px; 
-  text-align: center; 
-  margin: 10px;
+.TextBoxGreen {
+  width: 300px;
+  height: 50px;
+  box-shadow: 5px 5px 3px green;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.TextBoxRed { 
-  width: 300px; 
-  height: 50px; 
-  box-shadow: 5px 5px 3px red; 
-  border-radius: 6px; 
-  text-align: center; 
-  margin: 10px;
+.TextBoxRed {
+  width: 300px;
+  height: 50px;
+  box-shadow: 5px 5px 3px red;
+  border-radius: 6px;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 .Button {
-  width: 300px; 
-  height: 20px;
+  width: 300px;
+  height: 30px;
   border-radius: 6px;
-  margin: 10px; 
+  margin: 10px;
   text-align: center;
   display: list-item;
-  
 }
