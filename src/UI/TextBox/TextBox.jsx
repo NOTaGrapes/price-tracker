@@ -1,25 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import DerivAPIBasic from "https://cdn.skypack.dev/@deriv/deriv-api/dist/DerivAPIBasic";
 import "./TextBox.css"
 
 
 
-const TextBox = (props) => {
-  const [className,setClassName] = useState("TextBoxGray");
-  const [price,setPrice] = useState(0);
-  const prevPrice = useRef(0);
+const TextBox = ({ symbol }) => {
+  const [price, setPrice] = useState(0);
+  const [subscribed_symbol, setSubscribeDSymbol] = useState()
 
-  const provideClassName = () => {
-    const PrevPrice = prevPrice.current;
-    const Price = price;
-    if(PrevPrice<Price){
-      setClassName("TextBoxGreen");
-    }
-    if(PrevPrice>Price){
-      setClassName("TextBoxRed");
-    }
-    // console.log("provide className inited")
-  }
+  useEffect(() => {
+    unsubscribeTicks(subscribed_symbol)
+    subscribeTicks(symbol)
+  }, [symbol])
 
   //DERIV PART of CODE//==========//Base variables//=================================================================================================
   const app_id = 1089;
@@ -27,12 +19,6 @@ const TextBox = (props) => {
   const api = new DerivAPIBasic({ connection });
 
   //DERIV PART of CODE//==========//ticks request//=================================================================================================
-  const ticks_request = {
-    ticks: props.symbol,
-    subscribe: 1
-  };
-
-  const tickSubscriber = () => api.subscribe(ticks_request);
 
   const ticksResponse = async (res) => {
     const data = JSON.parse(res.data);
@@ -45,46 +31,30 @@ const TextBox = (props) => {
     // Allows you to monitor ticks.
     if (data.msg_type === "tick") {
       console.log(data.tick);
-      //setPrice(data.tick.quote);  //Uncomend code there and try launch app again. There is a problem!
+      setPrice(data.tick.quote);  //Uncomend code there and try launch app again. There is a problem!
     }
   };
 
-  const subscribeTicks = async () => {
-    connection.addEventListener("message", ticksResponse);
-    await tickSubscriber();
+  { }
+
+  const subscribeTicks = async (data) => {
+    if (data?.symbol) {
+      connection.addEventListener("message", ticksResponse);
+      await api.subscribe({ ticks: data, subscribe: 1 })
+      setSubscribeDSymbol({ ticks: data, subscribe: 1 })
+    }
+
   };
 
-  const unsubscribeTicks = async () => {
+  const unsubscribeTicks = async (data) => {
     connection.removeEventListener("message", ticksResponse, false);
-    await tickSubscriber().unsubscribe();
+    await api.subscribe({ ticks: data, subscribe: 1 }).unsubscribe()
+    setSubscribeDSymbol({})
   };
 
   return (
-    <div>
-      <input
-      type="text"
-      aria-label={props.name}
-      className={className}
-      symbol={props.symbol}
-      value={price}
-      onChange={()=>{console.log("(q * o *)p  'Even I don't give a plug haf it happenEnd!'");}}>
-      </input>
-      <button 
-      className="Button" 
-      onClick={()=> {
-        subscribeTicks()
-        console.log("start pushed")
-        }}>
-        Start
-      </button>
-      <button 
-      className="Button"
-      onClick={()=> {
-        unsubscribeTicks()
-        console.log("stop pushed")
-        }}>
-        Stop
-      </button>
+    <div className="TextBoxGray">
+      {price}
     </div>
   )
 }

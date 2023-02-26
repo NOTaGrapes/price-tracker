@@ -1,5 +1,5 @@
 import DerivAPIBasic from "https://cdn.skypack.dev/@deriv/deriv-api/dist/DerivAPIBasic";
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
@@ -9,103 +9,76 @@ import TextBox from "./UI/TextBox/TextBox";
 import Select from "./UI/Select/Select";
 // ================================================================================================================================
 const Main = () => {
-  const sortByMarket = (a, b) => a.market > b.market ? 1 : -1;
-  const [mainList,setMainList] = useState([]);
-  const [markets,setMarkets] = useState([]);
-  const [market,setMarket] = useState("");
-  const [symbols,setSymbols] = useState([]);
-  const [symbol,setSymbol] = useState("");
-  //func that return array for market's select
-  const provideMarketOptions = () => {
-    let AllOptions = mainList;
-    let MarketOptions = ["Select Market"];
-    for(let i=0; i < AllOptions.length; i++){
-      let copy = AllOptions[i]['market'];
-      if(!MarketOptions.includes(copy)){
-        MarketOptions.push(copy);
+  const [markets_list, setMarketsList] = useState([])
+  const [markets, setMarkets] = useState([])
+  const [market, setMarket] = useState()
+  const [symbols, setSymbols] = useState([])
+  const [symbol, setSymbol] = useState()
+
+  console.log('symbol', symbol);
+
+  useEffect(() => {
+    const unique_markets = []
+    for (let index = 0; index < markets_list.length; index++) {
+      if (!unique_markets.includes(markets_list[index].market_display_name)) {
+        unique_markets.push(markets_list[index].market_display_name)
       }
     }
-    // console.log("provide market options inited")
-    setMarkets(MarketOptions);
-    setMarket(MarketOptions[0]);
-  }
-  //func that return array for market's select
-  const provideSymbolOptions = () => {
-    let AllOptions = mainList;
-    let SymbolOptions = ["Select Symbol"];
-    if(market!=="Select Market" && market!==""){
-      for(let i=0; i < AllOptions.length; i++){
-        let newMarket = AllOptions[i]['market'];
-        let copy = AllOptions[i]['symbol'];
-        if(newMarket===market){
-          SymbolOptions.push(copy);
-        }
+    setMarkets(unique_markets)
+  }, [markets_list])
+
+  useEffect(() => {
+    const unique_symbols = []
+    for (let index = 0; index < markets_list.length; index++) {
+      if (market == markets_list[index].market_display_name) {
+        unique_symbols.push(markets_list[index])
       }
     }
-    // console.log("provide symbol options inited")
-    setSymbols(SymbolOptions);
-    setSymbol(SymbolOptions[0]);
-  }
- 
-  useEffect(()=>{
-    if(mainList.length!==0)
-    {
-      console.log("<mainList> change detected by useEffect : ",mainList);
-      provideMarketOptions();
-      provideSymbolOptions();
-    }
-  }, [mainList])
+    setSymbols(unique_symbols)
+  }, [market])
 
-  useEffect(()=>{
-    if(market!=="" && market!=="Select Market"){
-      console.log("<market> change detected by useEffect : ",market);
-      provideSymbolOptions();
-    }
-  }, [market]);
-
-  
   const onMarketChange = (e) => {
-    setMarket(e);
-    console.log("<market> changed to : ", e);
-  };
-
+    setMarket(e)
+  }
   const onSymbolChange = (e) => {
-    setSymbol(e);
-    console.log("<symbol> changed to : ", e);
-  };
+    markets_list.map(market => {
+      if (e == market.symbol) {
+        setSymbol(market)
+      }
+    })
+  }
 
   //DERIV PART of CODE//==========//Base variables//=================================================================================================
-  const app_id = 1089;
-  const connection = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`);
-  const api        = new DerivAPIBasic({ connection });
-  //DERIV PART of CODE//==========//Active symbols request//=================================================================================================
+  const app_id = 1089; // Replace with your app_id or leave the current one for testing.
+  const connection = new WebSocket(
+    `wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`
+  );
+  const api = new DerivAPIBasic({ connection });
+
+  // Currently gets all available symbols.
   const active_symbols_request = {
+    // landing_company: "maltainvest", // Uncomment landing_company if you want to retrieve specific symbols.
     active_symbols: "brief",
     product_type: "basic"
   };
+
   const activeSymbolsResponse = async (res) => {
     const data = JSON.parse(res.data);
+
     if (data.error !== undefined) {
       console.log("Error : ", data.error?.message);
       connection.removeEventListener("message", activeSymbolsResponse, false);
       await api.disconnect();
     }
-    if (data.msg_type === "active_symbols") {
-      console.log("<data> was recieved :", data.active_symbols);
-      let newMainList =[];
-      for (let i = 0; i < data.active_symbols.length;i++)
-      {
-        newMainList.push({
-          market: data.active_symbols[i].market,
-          symbol: data.active_symbols[i].symbol,
-        })
 
-      }
-      newMainList.sort(sortByMarket);
-      setMainList(newMainList);
+    if (data.msg_type === "active_symbols") {
+      console.log(data.active_symbols);
+      setMarketsList(data.active_symbols)
     }
+
     connection.removeEventListener("message", activeSymbolsResponse, false);
   };
+
   const getActiveSymbols = async () => {
     connection.addEventListener("message", activeSymbolsResponse);
     await api.activeSymbols(active_symbols_request);
@@ -116,20 +89,16 @@ const Main = () => {
     <div className="Main" onLoad={getActiveSymbols}>
       <LogoPulse />
       <Select
-      name="SelectMarket"
-      onChange={onMarketChange}
-      defaultValue="Select Market"
-      options={markets}
+        name="Select Market"
+        options={markets}
+        onChangeHandler={onMarketChange}
       />
       <Select
-      name="SelectSymbol"
-      onChange={onSymbolChange}
-      options={symbols}
+        name="Select Symbol"
+        options={symbols}
+        onChangeHandler={onSymbolChange}
       />
-      <TextBox
-      name="TextBoxPrice"
-      symbol={symbol}
-      />
+      <TextBox symbol={symbol} />
     </div>
   );
 }
