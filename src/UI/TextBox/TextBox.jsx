@@ -2,60 +2,78 @@ import React, { useEffect, useRef, useState } from "react"
 import DerivAPIBasic from "https://cdn.skypack.dev/@deriv/deriv-api/dist/DerivAPIBasic";
 import "./TextBox.css"
 
-
-
 const TextBox = ({ symbol }) => {
+  const [className, setClassName] = useState("TextBoxGray");
   const [price, setPrice] = useState(0);
-  const [subscribed_symbol, setSubscribeDSymbol] = useState()
+  const prevPrice = useRef(0);
 
-  useEffect(() => {
-    if (symbol !== undefined) {
-      unsubscribeTicks(subscribed_symbol)
-      subscribeTicks(symbol)
+  const provideClassName = () => {
+    const PrevPrice = prevPrice.current;
+    const Price = price;
+    if (PrevPrice < Price) {
+      setClassName("TextBoxGreen");
     }
+    if (PrevPrice > Price) {
+      setClassName("TextBoxRed");
+    }
+    // console.log("provide className inited")
+  }
 
-  }, [symbol])
-
-  //DERIV PART of CODE//==========//Base variables//=================================================================================================
   const app_id = 1089;
   const connection = new WebSocket(`wss://ws.binaryws.com/websockets/v3?app_id=${app_id}`);
   const api = new DerivAPIBasic({ connection });
 
-  //DERIV PART of CODE//==========//ticks request//=================================================================================================
-
+  const ticksHistoryResponse = async (res) => {
+    const data = JSON.parse(res.data);
+    if (data.error !== undefined) {
+      console.log("Error : ", data.error.message);
+      connection.removeEventListener("message", ticksHistoryResponse, false);
+      await api.disconnect();
+    }
+    if (data.msg_type === "history") {
+      console.log(data.history);
+    }
+    connection.removeEventListener("message", ticksHistoryResponse, false);
+  };
   const ticksResponse = async (res) => {
     const data = JSON.parse(res.data);
-    // This example returns an object with a selected amount of past ticks.
     if (data.error !== undefined) {
       console.log("Error : ", data.error.message);
       connection.removeEventListener("message", ticksResponse, false);
       await api.disconnect();
     }
-    // Allows you to monitor ticks.
     if (data.msg_type === "tick") {
       console.log(data.tick);
-      setPrice(data.tick.quote);  //Uncomend code there and try launch app again. There is a problem!
+      setPrice(data.tick)
     }
   };
 
-  const tickSubscriber = (ticks_request) => api.subscribe(ticks_request);
+  const tickSubscriber = () => api.subscribe({ ticks: symbol, subscribe: 1 });
+  const tickUnSubscriber = () => api.subscribe({ ticks: symbol, subscribe: 1 }).unsubscribe()
 
-  const subscribeTicks = async (data) => {
+  const subscribeTicks = async () => {
     connection.addEventListener("message", ticksResponse);
-    await tickSubscriber({ ticks: data, subscribe: 1 })
-    setSubscribeDSymbol({ ticks: data, subscribe: 1 })
-  };
-
-  const unsubscribeTicks = async (data) => {
+    await tickSubscriber();
+  }
+  const unsubscribeTicks = async () => {
     connection.removeEventListener("message", ticksResponse, false);
-    await tickSubscriber({ ticks: data, subscribe: 1 }).unsubscribe()
-    setSubscribeDSymbol(null)
-  };
+    await tickUnSubscriber();
+  }
 
   return (
-    <div className="TextBoxGray">
-      {price}
-    </div>
+    <>
+      <div className="TextBoxGray">
+        <input
+          type="text"
+          className={className}
+          symbol={symbol}
+          value={price.quote}
+          onChange={() => { console.log("(q * o *)p  'Even I don't give a plug haf it happenEnd!'"); }}>
+        </input>
+      </div>
+      <button className="Button" onClick={() => { subscribeTicks() }}>Calculate</button>
+      <button className="Button" onClick={() => { unsubscribeTicks() }}>Stop</button>
+    </>
   )
 }
 
