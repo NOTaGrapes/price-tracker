@@ -18,8 +18,8 @@ const Select = ({ options, onChangeHandler, name }) => {
 				<option >{name}</option>
 				{options.map((option, index) => {
 					return (
-						<option key={index} value={option?.symbol || option}>
-							{option?.symbol || option}
+						<option key={index} value={option?.display_name || option}>
+							{option?.display_name || option}
 						</option>
 					)
 				})}

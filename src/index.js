@@ -41,11 +41,7 @@ const Main = () => {
     setMarket(e)
   }
   const onSymbolChange = (e) => {
-    markets_list.map(market => {
-      if (e == market.symbol) {
-        setSymbol(market)
-      }
-    })
+    setSymbol(e)
   }
 
   //DERIV PART of CODE//==========//Base variables//=================================================================================================

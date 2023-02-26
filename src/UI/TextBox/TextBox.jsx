@@ -9,8 +9,11 @@ const TextBox = ({ symbol }) => {
   const [subscribed_symbol, setSubscribeDSymbol] = useState()
 
   useEffect(() => {
-    unsubscribeTicks(subscribed_symbol)
-    subscribeTicks(symbol)
+    if (symbol !== undefined) {
+      unsubscribeTicks(subscribed_symbol)
+      subscribeTicks(symbol)
+    }
+
   }, [symbol])
 
   //DERIV PART of CODE//==========//Base variables//=================================================================================================
@@ -35,21 +38,18 @@ const TextBox = ({ symbol }) => {
     }
   };
 
-  { }
+  const tickSubscriber = (ticks_request) => api.subscribe(ticks_request);
 
   const subscribeTicks = async (data) => {
-    if (data?.symbol) {
-      connection.addEventListener("message", ticksResponse);
-      await api.subscribe({ ticks: data, subscribe: 1 })
-      setSubscribeDSymbol({ ticks: data, subscribe: 1 })
-    }
-
+    connection.addEventListener("message", ticksResponse);
+    await tickSubscriber({ ticks: data, subscribe: 1 })
+    setSubscribeDSymbol({ ticks: data, subscribe: 1 })
   };
 
   const unsubscribeTicks = async (data) => {
     connection.removeEventListener("message", ticksResponse, false);
-    await api.subscribe({ ticks: data, subscribe: 1 }).unsubscribe()
-    setSubscribeDSymbol({})
+    await tickSubscriber({ ticks: data, subscribe: 1 }).unsubscribe()
+    setSubscribeDSymbol(null)
   };
 
   return (
